@@ -8,9 +8,7 @@ from skimage import transform, color
 
 def load_image():
     """Создание формы для загрузки изображения"""
-    # Форма для загрузки изображения средствами Streamlit
-    uploaded_file = st.file_uploader(
-        label='Выберите изображение для распознавания')
+    uploaded_file = st.file_uploader(label='Загрузите снимок КТ')
     if uploaded_file is not None:
         # Получение загруженного изображения
         image_data = uploaded_file.getvalue()
@@ -22,13 +20,16 @@ def load_image():
         return None
 
 
+# кэшируем загруженную модель
 @st.cache_resource
 def load_model():
-    model = tf.keras.models.load_model("models/vgg16", )
+    """Загружаем модель"""
+    model = tf.keras.models.load_model("models/vgg16")
     return model
 
 
 def preprocess_image(img):
+    """Преобразует изображение PIL.Image в формат для распознавания ИНС"""
     img = img.resize((200, 200))
     x = np.array(img).astype('float32') / 255
     x = transform.resize(x, (200, 200, 3))
@@ -37,28 +38,23 @@ def preprocess_image(img):
 
 
 def print_predictions(preds):
+    """Выводит предсказанные данные"""
     if preds[0][0] < preds[0][1]:
         st.error("Наблюдается опухоль с вероятностью {:.3%}".format(preds[0][1]))
     else:
         st.success("Не наблюдается опухоль с вероятностью {:.3%}".format(preds[0][0]))
 
 
-# Загружаем предварительно обученную модель
 model = load_model()
 # Выводим заголовок страницы
-st.title('Классификация изображений')
+st.title('Классификация снимков КТ с раковой опухолью')
 # Выводим форму загрузки изображения и получаем изображение
 img = load_image()
 # Показывам кнопку для запуска распознавания изображения
 result = st.button('Распознать изображение')
 # Если кнопка нажата, то запускаем распознавание изображения
 if result:
-    # Предварительная обработка изображения
     x = preprocess_image(img)
-    # Распознавание изображения
     preds = model.predict(x)
-    # Выводим заголовок результатов распознавания жирным шрифтом
-    # используя форматирование Markdown
-    st.write('**Результаты распознавания:**')
-    # Выводим результаты распознавания
+    st.write('### Результаты распознавания:')
     print_predictions(preds)
