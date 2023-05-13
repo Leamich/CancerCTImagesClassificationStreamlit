@@ -3,3 +3,4 @@ numpy==1.24.2
 Pillow==9.0.1
 streamlit==1.18.1
 scikit-image==0.19.3
+altair==4.0
